@@ -1,0 +1,218 @@
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: #f6f5f2;
+  color: #1c1c1c;
+  min-height: 100vh;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px;
+}
+
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  padding: 40px 32px;
+  width: 100%;
+  max-width: 420px;
+  text-align: center;
+  margin-top: 8vh;
+}
+
+.user-number {
+  display: inline-block;
+  font-size: 14px;
+  letter-spacing: 2px;
+  color: #8a6d3b;
+  background: #fdf6e3;
+  border: 1px solid #f0e0b8;
+  border-radius: 999px;
+  padding: 6px 16px;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+p.subtitle {
+  color: #666;
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+}
+
+input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1px solid #d9d4c8;
+  border-radius: 10px;
+  background: #fbfaf7;
+  margin-top: 6px;
+}
+
+input:focus {
+  outline: 2px solid #b89b5e;
+  border-color: transparent;
+}
+
+button {
+  margin-top: 8px;
+  padding: 13px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  background: #1c1c1c;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #b3261e;
+  font-size: 13px;
+}
+
+.welcome-text {
+  color: #444;
+  font-size: 15px;
+  line-height: 1.8;
+  text-align: left;
+  margin-top: 8px;
+}
+
+.admin-card {
+  max-width: 640px;
+  margin-top: 0;
+  text-align: left;
+  padding: 32px 24px;
+}
+
+.admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.admin-header .subtitle {
+  margin-bottom: 0;
+}
+
+.admin-header form {
+  margin: 0;
+}
+
+.admin-header button {
+  margin-top: 0;
+}
+
+.btn-secondary {
+  background: #eeeae3;
+  color: #1c1c1c;
+}
+
+.btn-danger {
+  background: #b3261e;
+}
+
+.admin-row {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-top: 1px solid #eee9df;
+  margin: 0;
+}
+
+.admin-row input {
+  margin-top: 0;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.admin-row button {
+  margin-top: 0;
+  padding: 8px 12px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.admin-row-head {
+  display: none;
+}
+
+.admin-number {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1px;
+  color: #8a6d3b;
+  font-weight: 600;
+  padding-top: 10px;
+}
+
+.admin-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.admin-date {
+  font-size: 12px;
+  color: #888;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin-actions {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  grid-column: 2;
+}
+
+.admin-hint {
+  color: #888;
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 8px;
+}
+
+.admin-hint code {
+  font-size: 12px;
+}
+
+.admin-qr {
+  font-size: 12px;
+  color: #8a6d3b;
+  word-break: break-all;
+}
