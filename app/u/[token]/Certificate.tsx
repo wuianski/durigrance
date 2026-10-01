@@ -46,6 +46,74 @@ async function shareCertificateFile(file: File) {
   }
 }
 
+function parseObjectPosition(value: string): [number, number] {
+  const parts = value.trim().split(/\s+/);
+  const axis = (part: string | undefined, fallback: number) => {
+    if (part === "left" || part === "top") return 0;
+    if (part === "right" || part === "bottom") return 1;
+    if (part === "center") return 0.5;
+    if (part?.endsWith("%")) return Number(part.slice(0, -1)) / 100;
+    return fallback;
+  };
+  return [axis(parts[0], 0.5), axis(parts[1], 0.5)];
+}
+
+function drawImageFitted(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement,
+  dw: number,
+  dh: number,
+) {
+  const nw = img.naturalWidth;
+  const nh = img.naturalHeight;
+  if (!nw || !nh) {
+    ctx.drawImage(img, 0, 0, dw, dh);
+    return;
+  }
+  const style = getComputedStyle(img);
+  if (style.objectFit !== "cover") {
+    ctx.drawImage(img, 0, 0, dw, dh);
+    return;
+  }
+  const [posX, posY] = parseObjectPosition(style.objectPosition);
+  const scale = Math.max(dw / nw, dh / nh);
+  const rw = nw * scale;
+  const rh = nh * scale;
+  ctx.drawImage(img, (dw - rw) * posX, (dh - rh) * posY, rw, rh);
+}
+
+async function embedImagesForCapture(root: HTMLElement) {
+  const imgs = Array.from(root.querySelectorAll("img"));
+  await Promise.all(
+    imgs.map(async (img) => {
+      if (!img.src || img.src.startsWith("data:")) return;
+      try {
+        if (!img.complete || img.naturalWidth === 0) {
+          await new Promise<void>((resolve) => {
+            img.onload = () => resolve();
+            img.onerror = () => resolve();
+          });
+        }
+        await img.decode().catch(() => undefined);
+        const rect = img.getBoundingClientRect();
+        const width = Math.max(1, Math.round(rect.width * 2));
+        const height = Math.max(1, Math.round(rect.height * 2));
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx || img.naturalWidth === 0) return;
+        drawImageFitted(ctx, img, width, height);
+        const opaque = /photo-/i.test(img.src);
+        img.src = canvas.toDataURL(opaque ? "image/jpeg" : "image/png", 0.92);
+        await img.decode().catch(() => undefined);
+      } catch {
+        // Keep the original src if rasterizing fails.
+      }
+    }),
+  );
+}
+
 function triggerFileDownload(url: string, filename: string) {
   const link = document.createElement("a");
   link.href = url;
@@ -84,10 +152,6 @@ export default function Certificate({
   const captureRef = useRef<HTMLElement>(null);
   const downloadingRef = useRef(false);
   const [videoOpen, setVideoOpen] = useState(false);
-  const [savePreview, setSavePreview] = useState<{
-    url: string;
-    file: File;
-  } | null>(null);
 
   const activated = formatActivatedDate(registeredAt);
 
@@ -105,20 +169,10 @@ export default function Certificate({
     downloadingRef.current = true;
     try {
       await document.fonts.ready;
-      const images = Array.from(captureRef.current.querySelectorAll("img"));
-      await Promise.all(
-        images.map((img) =>
-          img.complete
-            ? Promise.resolve()
-            : new Promise<void>((resolve) => {
-                img.onload = () => resolve();
-                img.onerror = () => resolve();
-              }),
-        ),
-      );
+      await embedImagesForCapture(captureRef.current);
       const captureOptions = {
         pixelRatio: isAppleTouchDevice() ? 1.5 : 2,
-        cacheBust: true,
+        cacheBust: false,
         backgroundColor: "#000000",
       };
       let blob = await toBlob(captureRef.current, captureOptions);
@@ -129,24 +183,14 @@ export default function Certificate({
       if (!blob) return;
       const filename = `durigrance-certificate-${userNumber}.png`;
       const file = new File([blob], filename, { type: "image/png" });
-      const url = URL.createObjectURL(blob);
-
-      triggerFileDownload(url, filename);
-
-      const shared = await shareCertificateFile(file);
-      if (shared && !isAppleTouchDevice()) {
-        window.setTimeout(() => URL.revokeObjectURL(url), 2000);
-        return;
-      }
 
       if (isAppleTouchDevice()) {
-        setSavePreview((current) => {
-          if (current) URL.revokeObjectURL(current.url);
-          return { url, file };
-        });
+        await shareCertificateFile(file);
         return;
       }
 
+      const url = URL.createObjectURL(blob);
+      triggerFileDownload(url, filename);
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } finally {
       downloadingRef.current = false;
@@ -155,13 +199,6 @@ export default function Certificate({
 
   function closeVideo() {
     setVideoOpen(false);
-  }
-
-  function closeSavePreview() {
-    setSavePreview((current) => {
-      if (current) URL.revokeObjectURL(current.url);
-      return null;
-    });
   }
 
   return (
@@ -311,33 +348,6 @@ export default function Certificate({
         </div>
       </main>
 
-      {savePreview && (
-        <div className="save-preview" role="dialog" aria-modal="true">
-          <button
-            type="button"
-            className="video-close"
-            onClick={closeSavePreview}
-            aria-label="Close"
-          >
-            ×
-          </button>
-          <p className="save-preview-hint">
-            Press and hold the image to save to Photos, or tap Save to Files.
-          </p>
-          <img
-            className="save-preview-image"
-            src={savePreview.url}
-            alt="Duri-grance certificate"
-          />
-          <button
-            type="button"
-            className="certificate-action save-preview-share"
-            onClick={() => shareCertificateFile(savePreview.file)}
-          >
-            SAVE TO PHOTOS OR FILES
-          </button>
-        </div>
-      )}
       {videoOpen && (
         <div className="video-overlay" role="dialog" aria-modal="true">
           <button
