@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getUserByToken } from "@/lib/db";
+import Certificate from "./Certificate";
 import RegisterForm from "./RegisterForm";
 
 // Always read fresh state from the database on every request.
@@ -19,28 +20,46 @@ export default async function UserPage({
 
   if (!user.name) {
     return (
-      <main className="card">
-        <span className="user-number">No. {user.user_number}</span>
-        <h1>Registration</h1>
-        <p className="subtitle">
-          Welcome! Please fill in your details below. You only need to do this
-          once.
-        </p>
-        <RegisterForm token={user.token} />
+      <main className="edition">
+        <div className="edition-inner">
+          <img
+            className="edition-mark"
+            src="/imgs/logo-fameme.png"
+            alt="FAMEME"
+          />
+          <img
+            className="edition-welcome"
+            src="/imgs/logo-welcome.png"
+            alt="Welcome to"
+          />
+          <img
+            className="edition-title"
+            src="/imgs/logo-durigrance.png"
+            alt="Duri-grance"
+          />
+          <img
+            className="edition-tagline"
+            src="/imgs/logo-fame-is-a-scent.png"
+            alt="Fame is a Scent"
+          />
+          <p className="edition-claim">Claim Your Artist Edition</p>
+          <p className="edition-number">NO. {user.user_number} / 100</p>
+          <p className="edition-copy">
+            This digital certificate certifies the identity of this unique
+            artist edition of Duri-grance: Fame is a Scent, created by FAMEME
+            in 2026.
+          </p>
+          <RegisterForm token={user.token} />
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="card">
-      <span className="user-number">No. {user.user_number}</span>
-      <h1>Welcome back, {user.name}!</h1>
-      <p className="welcome-text">
-        Thank you for being part of this event. You are our guest number{" "}
-        {user.user_number}, and this page is yours alone — keep your QR code
-        handy and show it at the entrance whenever you visit. We are delighted
-        to have you with us and hope you enjoy every moment of the experience.
-      </p>
-    </main>
+    <Certificate
+      name={user.name}
+      userNumber={user.user_number}
+      registeredAt={user.registered_at ?? ""}
+    />
   );
 }

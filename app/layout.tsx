@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Event Registration",
-  description: "QR code one-time registration demo",
+  title: "Duri-grance",
+  description: "Claim your artist edition of Duri-grance: Fame is a Scent",
 };
 
 export default function RootLayout({

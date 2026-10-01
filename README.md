@@ -41,7 +41,12 @@ Do not print localhost QR codes. Phones will not reach your computer.
 | `APP_URL` | Public site for `/u/…` pages and `/q/…` redirects |
 | `BASE_URL` | Fallback if the two above are unset |
 
-On the Droplet, set `QR_BASE_URL` and `APP_URL` to `https://your-domain.com`.
+Each machine has its **own** `.env.local` (gitignored). Do not copy the laptop file to the Droplet.
+
+- Laptop: `http://localhost:3000`
+- Droplet: `https://your-domain.com` for both `QR_BASE_URL` and `APP_URL`
+
+`/q/<token>` always redirects to `/u/<token>` on the **same host** that received the request, so local and production never mix.
 
 `.env.local`, `data/app.db`, and `qrcodes/` are gitignored.
 

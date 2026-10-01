@@ -1,6 +1,6 @@
 import { isAdminAuthed } from "@/lib/adminAuth";
 import { getAllUsers } from "@/lib/db";
-import { defaultDestination } from "@/lib/urls";
+import { guestPageUrl, requestOrigin } from "@/lib/urls";
 import { logout, resetUser, saveUser } from "./actions";
 import LoginForm from "./LoginForm";
 import ResetButton from "./ResetButton";
@@ -20,6 +20,7 @@ export default async function AdminPage() {
 
   const users = getAllUsers();
   const registered = users.filter((user) => user.name !== null).length;
+  const origin = await requestOrigin();
 
   return (
     <main className="card admin-card">
@@ -38,7 +39,7 @@ export default async function AdminPage() {
       </div>
 
       {users.map((user) => {
-        const pageUrl = defaultDestination(user.token);
+        const pageUrl = guestPageUrl(user.token, origin);
         return (
           <form key={user.user_number} action={saveUser} className="admin-row">
             <input type="hidden" name="user_number" value={user.user_number} />
