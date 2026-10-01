@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { toPng } from "html-to-image";
+import { toBlob, toPng } from "html-to-image";
 
 const VIMEO_ID = "1231004615";
 
@@ -16,6 +16,45 @@ function formatActivatedDate(value: string) {
   const [year, month, day] = datePart.split("-").map(Number);
   if (!year || !month || !day) return value;
   return `${year}.${month}.${day}`;
+}
+
+function isAppleTouchDevice() {
+  if (typeof navigator === "undefined") return false;
+  return (
+    /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1)
+  );
+}
+
+async function shareCertificateFile(file: File) {
+  if (typeof navigator.share !== "function") return false;
+  try {
+    const payload = { files: [file], title: "Duri-grance Certificate" };
+    if (
+      typeof navigator.canShare === "function" &&
+      !navigator.canShare(payload)
+    ) {
+      return false;
+    }
+    await navigator.share(payload);
+    return true;
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return true;
+    }
+    return false;
+  }
+}
+
+function triggerFileDownload(url: string, filename: string) {
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.rel = "noopener";
+  link.style.display = "none";
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
 }
 
 function Chevron() {
@@ -45,6 +84,10 @@ export default function Certificate({
   const captureRef = useRef<HTMLElement>(null);
   const downloadingRef = useRef(false);
   const [videoOpen, setVideoOpen] = useState(false);
+  const [savePreview, setSavePreview] = useState<{
+    url: string;
+    file: File;
+  } | null>(null);
 
   const activated = formatActivatedDate(registeredAt);
 
@@ -73,15 +116,37 @@ export default function Certificate({
               }),
         ),
       );
-      const dataUrl = await toPng(captureRef.current, {
-        pixelRatio: 2,
+      const captureOptions = {
+        pixelRatio: isAppleTouchDevice() ? 1.5 : 2,
         cacheBust: true,
         backgroundColor: "#000000",
-      });
-      const link = document.createElement("a");
-      link.href = dataUrl;
-      link.download = `durigrance-certificate-${userNumber}.png`;
-      link.click();
+      };
+      const blob =
+        (await toBlob(captureRef.current, captureOptions)) ??
+        (await fetch(
+          await toPng(captureRef.current, captureOptions),
+        ).then((response) => response.blob()));
+      const filename = `durigrance-certificate-${userNumber}.png`;
+      const file = new File([blob], filename, { type: "image/png" });
+      const url = URL.createObjectURL(blob);
+
+      triggerFileDownload(url, filename);
+
+      const shared = await shareCertificateFile(file);
+      if (shared && !isAppleTouchDevice()) {
+        window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+        return;
+      }
+
+      if (isAppleTouchDevice()) {
+        setSavePreview((current) => {
+          if (current) URL.revokeObjectURL(current.url);
+          return { url, file };
+        });
+        return;
+      }
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } finally {
       downloadingRef.current = false;
     }
@@ -89,6 +154,13 @@ export default function Certificate({
 
   function closeVideo() {
     setVideoOpen(false);
+  }
+
+  function closeSavePreview() {
+    setSavePreview((current) => {
+      if (current) URL.revokeObjectURL(current.url);
+      return null;
+    });
   }
 
   return (
@@ -238,6 +310,33 @@ export default function Certificate({
         </div>
       </main>
 
+      {savePreview && (
+        <div className="save-preview" role="dialog" aria-modal="true">
+          <button
+            type="button"
+            className="video-close"
+            onClick={closeSavePreview}
+            aria-label="Close"
+          >
+            ×
+          </button>
+          <p className="save-preview-hint">
+            Press and hold the image to save to Photos, or tap Save to Files.
+          </p>
+          <img
+            className="save-preview-image"
+            src={savePreview.url}
+            alt="Duri-grance certificate"
+          />
+          <button
+            type="button"
+            className="certificate-action save-preview-share"
+            onClick={() => shareCertificateFile(savePreview.file)}
+          >
+            SAVE TO PHOTOS OR FILES
+          </button>
+        </div>
+      )}
       {videoOpen && (
         <div className="video-overlay" role="dialog" aria-modal="true">
           <button
