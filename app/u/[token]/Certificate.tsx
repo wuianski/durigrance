@@ -121,11 +121,12 @@ export default function Certificate({
         cacheBust: true,
         backgroundColor: "#000000",
       };
-      const blob =
-        (await toBlob(captureRef.current, captureOptions)) ??
-        (await fetch(
-          await toPng(captureRef.current, captureOptions),
-        ).then((response) => response.blob()));
+      let blob = await toBlob(captureRef.current, captureOptions);
+      if (!blob) {
+        const dataUrl = await toPng(captureRef.current, captureOptions);
+        blob = await fetch(dataUrl).then((response) => response.blob());
+      }
+      if (!blob) return;
       const filename = `durigrance-certificate-${userNumber}.png`;
       const file = new File([blob], filename, { type: "image/png" });
       const url = URL.createObjectURL(blob);
