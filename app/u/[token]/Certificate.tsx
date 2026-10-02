@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { toBlob, toPng } from "html-to-image";
 
-const VIMEO_ID = "1231004615";
+const VIMEO_ID = "1232376730";
 
 type CertificateProps = {
   name: string;
@@ -359,10 +359,11 @@ export default function Certificate({
             ×
           </button>
           <iframe
-            src={`https://player.vimeo.com/video/${VIMEO_ID}?autoplay=1&title=0&byline=0&portrait=0&dnt=1`}
-            allow="autoplay; fullscreen; picture-in-picture"
+            src={`https://player.vimeo.com/video/${VIMEO_ID}?autoplay=1&title=0&byline=0&portrait=0&dnt=1&badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479`}
+            allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media; web-share"
             allowFullScreen
-            title="Duri-grance artist edition video"
+            referrerPolicy="strict-origin-when-cross-origin"
+            title="Duri-grance, 2026"
           />
         </div>
       )}
